@@ -2,490 +2,131 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MT Microsoldering – Control de Facturas</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MT Facturas">
+<title>MT Facturas</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0d0d;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --border: #2e2e2e;
-    --accent: #00e5a0;
-    --accent2: #ff6b35;
-    --text: #f0f0f0;
-    --muted: #888;
-    --tax-rate: 0.0775;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Syne', sans-serif;
-    min-height: 100vh;
-  }
-  header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .logo-box {
-    width: 44px; height: 44px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    font-size: 18px;
-    color: #000;
-  }
-  header h1 { font-size: 18px; font-weight: 800; line-height: 1.1; }
-  header p { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    padding: 0 16px;
-  }
-  .tab {
-    padding: 14px 18px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all .2s;
-  }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  .view { display: none; padding: 20px 16px; }
-  .view.active { display: block; }
-
-  /* FORM */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-  .card h2 { font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--accent); }
-  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; }
-  input, select {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    outline: none;
-    transition: border-color .2s;
-  }
-  input:focus, select:focus { border-color: var(--accent); }
-
-  .price-preview {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    margin-top: 16px;
-  }
-  .price-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    padding: 4px 0;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-  }
-  .price-row.total { color: var(--accent); font-weight: 700; font-size: 15px; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
-  .price-row.tax { color: var(--accent2); }
-
-  .btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 15px;
-    cursor: pointer;
-    margin-top: 16px;
-    transition: opacity .2s;
-  }
-  .btn:active { opacity: .8; }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-danger { background: #ff3b3b22; color: #ff6b6b; border: 1px solid #ff3b3b44; margin-top: 6px; font-size: 13px; padding: 10px; }
-  .btn-export { background: var(--surface2); color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
-  .btn-whatsapp { background: #25D36622; color: #25D366; border: 1px solid #25D36644; margin-top: 8px; }
-
-  /* SUMMARY CARDS */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-  }
-  .stat-card .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-  .stat-card .value { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; }
-  .stat-card.green .value { color: var(--accent); }
-  .stat-card.orange .value { color: var(--accent2); }
-  .stat-card.full { grid-column: span 2; }
-
-  /* INVOICE LIST */
-  .invoice-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-  .inv-header { display: flex; justify-content: space-between; align-items: flex-start; }
-  .inv-name { font-weight: 800; font-size: 14px; }
-  .inv-date { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .inv-desc { font-size: 12px; color: var(--muted); margin: 6px 0; }
-  .inv-amounts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-  .badge {
-    font-size: 11px;
-    font-family: 'Space Mono', monospace;
-    padding: 3px 8px;
-    border-radius: 6px;
-  }
-  .badge.green { background: #00e5a020; color: var(--accent); }
-  .badge.orange { background: #ff6b3520; color: var(--accent2); }
-  .badge.gray { background: #ffffff10; color: var(--muted); }
-  .del-btn {
-    background: none; border: none; color: #ff6b6b88;
-    font-size: 18px; cursor: pointer; padding: 0 4px;
-    line-height: 1;
-  }
-
-  /* FILTER */
-  .filter-row {
-    display: flex; gap: 8px; margin-bottom: 14px;
-  }
-  .filter-row select { flex: 1; }
-  .filter-row input { flex: 2; }
-
-  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
-
-  /* TAX REPORT */
-  .report-section { margin-bottom: 20px; }
-  .report-section h3 { font-size: 13px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-  .report-row {
-    display: flex; justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    font-family: 'Space Mono', monospace;
-  }
-  .report-row .lbl { color: var(--muted); font-family: 'Syne', sans-serif; }
-  .highlight { color: var(--accent2); font-weight: 700; }
-
-  .year-select-row { display: flex; gap: 8px; margin-bottom: 16px; }
-  .year-select-row select { flex: 1; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:#0a0a0a; color:#f0f0f0; font-family:'Exo 2',sans-serif; min-height:100vh; max-width:480px; margin:0 auto; }
+.header { background:#111; border-bottom:2px solid #00ff88; padding:14px 16px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:100; }
+.logo { width:42px; height:42px; background:#00ff88; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:#000; flex-shrink:0; }
+.header h1 { font-size:16px; font-weight:700; color:#fff; }
+.header p { font-size:10px; color:#555; margin-top:1px; }
+.tabs { display:flex; background:#111; border-bottom:1px solid #222; }
+.tbtn { flex:1; padding:12px 4px; background:none; border:none; border-bottom:2px solid transparent; color:#555; font-family:'Exo 2',sans-serif; font-size:11px; cursor:pointer; }
+.tbtn.on { color:#00ff88; border-bottom-color:#00ff88; }
+.page { display:none; padding:16px; padding-bottom:50px; }
+.page.on { display:block; }
+.sec-title { font-size:17px; font-weight:700; color:#00ff88; margin-bottom:18px; }
+.field { margin-bottom:12px; }
+.field label { font-size:10px; color:#555; display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+.field input { width:100%; background:#1a1a1a; border:1px solid #222; border-radius:8px; color:#fff; font-family:'Exo 2',sans-serif; font-size:15px; padding:11px 13px; outline:none; }
+.field input:focus { border-color:#00ff88; }
+.tax-box { background:#1a1200; border:1px solid #3a2800; border-radius:8px; padding:10px 13px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+.prev-box { background:#111; border:1px solid #1a3a2a; border-radius:10px; padding:12px 14px; margin-bottom:16px; }
+.prow { display:flex; justify-content:space-between; margin-bottom:5px; font-size:13px; }
+.pdiv { border-top:1px solid #222; margin:8px 0; }
+.ptot { display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:#00ff88; }
+.btn-save { width:100%; padding:15px; background:#00ff88; border:none; border-radius:10px; color:#000; font-family:'Exo 2',sans-serif; font-size:15px; font-weight:900; cursor:pointer; }
+.btn-save.ok { background:#00aa55; }
+.search { width:100%; background:#1a1a1a; border:1px solid #222; border-radius:8px; color:#fff; font-family:'Exo 2',sans-serif; font-size:13px; padding:10px 13px; outline:none; margin-bottom:14px; }
+.card { background:#111; border:1px solid #1e1e1e; border-radius:12px; padding:14px; margin-bottom:12px; }
+.crow { display:flex; justify-content:space-between; align-items:flex-start; }
+.cname { font-weight:700; font-size:15px; color:#fff; }
+.cphone { font-size:11px; color:#555; margin-top:2px; }
+.cdesc { font-size:12px; color:#888; margin-top:5px; }
+.cdate { font-size:10px; color:#444; margin-top:3px; }
+.ctotal { font-size:18px; font-weight:900; color:#00ff88; text-align:right; }
+.csub { font-size:10px; color:#555; text-align:right; margin-top:2px; }
+.ctax { font-size:10px; color:#ff8800; text-align:right; margin-top:1px; }
+.cgain { font-size:11px; color:#00cc66; text-align:right; margin-top:3px; }
+.cbtns { display:flex; gap:8px; margin-top:10px; }
+.bwa { background:#0a2a0a; border:1px solid #00aa44; border-radius:6px; color:#00ff88; font-size:11px; padding:6px 13px; cursor:pointer; font-family:'Exo 2',sans-serif; font-weight:700; }
+.bdel { background:none; border:1px solid #222; border-radius:6px; color:#444; font-size:11px; padding:6px 10px; cursor:pointer; font-family:'Exo 2',sans-serif; }
+.bdelyes { background:#ff2222; border:none; border-radius:6px; color:#fff; font-size:11px; padding:6px 10px; cursor:pointer; font-weight:700; font-family:'Exo 2',sans-serif; }
+.bcancel { background:#222; border:none; border-radius:6px; color:#888; font-size:11px; padding:6px 10px; cursor:pointer; font-family:'Exo 2',sans-serif; }
+.empty { text-align:center; color:#333; padding:50px 20px; }
+.eicon { font-size:40px; margin-bottom:10px; }
+.rhead { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.rbtns { display:flex; gap:8px; }
+.bcopy { background:#1a1a0a; border:1px solid #aaaa00; border-radius:8px; color:#ffff44; font-size:11px; padding:7px 11px; cursor:pointer; font-family:'Exo 2',sans-serif; font-weight:700; }
+.bwarep { background:#0a2a0a; border:1px solid #00aa44; border-radius:8px; color:#00ff88; font-size:11px; padding:7px 11px; cursor:pointer; font-family:'Exo 2',sans-serif; font-weight:700; }
+.stat { background:#111; border:1px solid #1e1e1e; border-radius:10px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+.slbl { color:#666; font-size:12px; }
+.sval { font-size:18px; font-weight:900; }
+.rtitle { font-size:10px; color:#444; margin-top:20px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.rrow { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1a1a1a; }
+.rname { font-size:12px; color:#ccc; }
+.rsub { font-size:10px; color:#444; }
+.ramt { color:#00ff88; font-weight:700; font-size:13px; }
 </style>
 </head>
 <body>
-
-<header>
-  <div class="logo-box">MT</div>
-  <div>
-    <h1>Control de Facturas</h1>
-    <p>MT Microsoldering · Anaheim, CA</p>
-  </div>
-</header>
-
+<div class="header">
+  <div class="logo">MT</div>
+  <div><h1>Control de Facturas</h1><p>MT Microsoldering · Anaheim, CA</p></div>
+</div>
 <div class="tabs">
-  <div class="tab active" onclick="showTab('nueva')">➕ Nueva</div>
-  <div class="tab" onclick="showTab('facturas')">📋 Facturas</div>
-  <div class="tab" onclick="showTab('reporte')">📊 Reporte</div>
+  <button class="tbtn on" id="tb0" onclick="goTab(0)">+ Nueva</button>
+  <button class="tbtn" id="tb1" onclick="goTab(1)">📋 Facturas (0)</button>
+  <button class="tbtn" id="tb2" onclick="goTab(2)">📊 Reporte</button>
 </div>
-
-<!-- NUEVA FACTURA -->
-<div class="view active" id="tab-nueva">
-  <div class="card">
-    <h2>Nueva Factura</h2>
-    <label>Nombre del cliente</label>
-    <input type="text" id="f-nombre" placeholder="Carlos García">
-    <label>Teléfono (opcional)</label>
-    <input type="text" id="f-tel" placeholder="657-527-4069">
-    <label>Fecha</label>
-    <input type="date" id="f-fecha">
-    <label>Descripción del trabajo</label>
-    <input type="text" id="f-desc" placeholder="iPhone 13 Screen">
-    <label>Precio total cobrado al cliente ($)</label>
-    <input type="number" id="f-total" placeholder="100" step="0.01" oninput="calcPreview()">
-    <label>¿De ese precio, cuánto fue la pantalla/parte? ($)</label>
-    <input type="number" id="f-parte" placeholder="60" step="0.01" oninput="calcPreview()">
-
-    <div class="price-preview" id="preview" style="display:none">
-      <div class="price-row"><span>Costo de la parte</span><span id="p-parte">$0.00</span></div>
-      <div class="price-row"><span>Mano de obra</span><span id="p-labor">$0.00</span></div>
-      <div class="price-row tax"><span>Sales Tax (7.75%)</span><span id="p-tax">$0.00</span></div>
-      <div class="price-row total"><span>TOTAL COBRADO</span><span id="p-total">$0.00</span></div>
-    </div>
-
-    <button class="btn btn-primary" onclick="guardarFactura()">💾 Guardar Factura</button>
+<div class="page on" id="pg0">
+  <div class="sec-title">Nueva Factura</div>
+  <div class="field"><label>Nombre del cliente *</label><input type="text" id="fc" placeholder="Ej: Juan García"></div>
+  <div class="field"><label>Teléfono (opcional)</label><input type="tel" id="ft" placeholder="Ej: 714-555-0000"></div>
+  <div class="field"><label>Fecha *</label><input type="date" id="ff"></div>
+  <div class="field"><label>Descripción del trabajo *</label><input type="text" id="fd" placeholder="Ej: iPhone 13 screen replacement"></div>
+  <div class="field"><label>Precio total cobrado ($) *</label><input type="number" id="fto" placeholder="0.00" oninput="rc()"></div>
+  <div class="field"><label>Costo de partes/pantalla ($)</label><input type="number" id="fp" placeholder="0.00" oninput="rc()"></div>
+  <div class="field"><label>% de impuesto (Tax)</label><input type="number" id="fx" value="7.75" oninput="rc()"></div>
+  <div class="tax-box" id="txb" style="display:none"><span id="txl" style="font-size:11px;color:#888">🧾 Tax (7.75% de partes)</span><span id="txv" style="font-size:15px;font-weight:700;color:#ff8800">$0.00</span></div>
+  <div class="prev-box" id="pvb" style="display:none">
+    <div style="font-size:10px;color:#555;margin-bottom:8px">PREVIEW</div>
+    <div class="prow"><span style="color:#888">Total cobrado</span><span id="pvt" style="color:#fff"></span></div>
+    <div class="prow"><span style="color:#888">Costo partes</span><span id="pvp" style="color:#ff4444"></span></div>
+    <div class="prow"><span id="pvxl" style="color:#888">Tax (7.75%)</span><span id="pvx" style="color:#ff8800"></span></div>
+    <div class="pdiv"></div>
+    <div class="ptot"><span>Ganancia neta</span><span id="pvg"></span></div>
   </div>
+  <button class="btn-save" id="bsv" onclick="guardar()">💾 Guardar Factura</button>
 </div>
-
-<!-- LISTA DE FACTURAS -->
-<div class="view" id="tab-facturas">
-  <div class="filter-row">
-    <select id="filtro-mes" onchange="renderFacturas()">
-      <option value="">Todos los meses</option>
-      <option value="01">Enero</option><option value="02">Febrero</option>
-      <option value="03">Marzo</option><option value="04">Abril</option>
-      <option value="05">Mayo</option><option value="06">Junio</option>
-      <option value="07">Julio</option><option value="08">Agosto</option>
-      <option value="09">Septiembre</option><option value="10">Octubre</option>
-      <option value="11">Noviembre</option><option value="12">Diciembre</option>
-    </select>
-    <input type="text" id="filtro-buscar" placeholder="Buscar cliente..." oninput="renderFacturas()">
-  </div>
-  <div id="lista-facturas"></div>
+<div class="page" id="pg1">
+  <input class="search" type="text" placeholder="🔍 Buscar cliente o trabajo..." oninput="rl(this.value)">
+  <div id="lista"></div>
 </div>
-
-<!-- REPORTE PARA TAXES -->
-<div class="view" id="tab-reporte">
-  <div class="year-select-row">
-    <select id="rep-year" onchange="renderReporte()"></select>
-    <select id="rep-mes" onchange="renderReporte()">
-      <option value="">Todo el año</option>
-      <option value="01">Enero</option><option value="02">Febrero</option>
-      <option value="03">Marzo</option><option value="04">Abril</option>
-      <option value="05">Mayo</option><option value="06">Junio</option>
-      <option value="07">Julio</option><option value="08">Agosto</option>
-      <option value="09">Septiembre</option><option value="10">Octubre</option>
-      <option value="11">Noviembre</option><option value="12">Diciembre</option>
-    </select>
+<div class="page" id="pg2">
+  <div class="rhead">
+    <div class="sec-title" style="margin-bottom:0">Reporte General</div>
+    <div class="rbtns"><button class="bcopy" id="bcp" onclick="cp()">📋 Copiar</button><button class="bwarep" onclick="wr()">💬 WA</button></div>
   </div>
-
-  <div class="summary-grid">
-    <div class="stat-card green"><div class="label">Total cobrado</div><div class="value" id="r-total">$0</div></div>
-    <div class="stat-card"><div class="label">Núm. facturas</div><div class="value" id="r-count">0</div></div>
-    <div class="stat-card"><div class="label">Costo de partes</div><div class="value" id="r-partes">$0</div></div>
-    <div class="stat-card"><div class="label">Mano de obra</div><div class="value" id="r-labor">$0</div></div>
-    <div class="stat-card orange full"><div class="label">🏛️ Sales Tax recolectado</div><div class="value" id="r-tax">$0</div></div>
-  </div>
-
-  <div class="card">
-    <h2>Resumen para el Contador</h2>
-    <div class="report-section">
-      <div class="report-row"><span class="lbl">Ingresos brutos</span><span id="rr-bruto">$0.00</span></div>
-      <div class="report-row"><span class="lbl">Costo de partes (COGS)</span><span id="rr-cogs">$0.00</span></div>
-      <div class="report-row"><span class="lbl">Mano de obra</span><span id="rr-labor">$0.00</span></div>
-      <div class="report-row"><span class="lbl highlight">Sales Tax a pagar</span><span class="highlight" id="rr-tax">$0.00</span></div>
-    </div>
-  </div>
-
-  <button class="btn btn-export" onclick="exportarCSV()">📥 Exportar CSV para Excel</button>
-  <button class="btn btn-whatsapp" onclick="compartirWhatsApp()">💬 Compartir Resumen por WhatsApp</button>
+  <div id="stats"></div><div id="rec"></div>
 </div>
-
 <script>
-const TAX_RATE = 0.0775; // California 7.75%
-
-function getFacturas() {
-  return JSON.parse(localStorage.getItem('mt_facturas') || '[]');
-}
-function setFacturas(arr) {
-  localStorage.setItem('mt_facturas', JSON.stringify(arr));
-}
-
-// Set today's date
-document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
-
-function calcPreview() {
-  const total = parseFloat(document.getElementById('f-total').value) || 0;
-  const parte = parseFloat(document.getElementById('f-parte').value) || 0;
-  if (total <= 0) { document.getElementById('preview').style.display = 'none'; return; }
-  document.getElementById('preview').style.display = 'block';
-  const tax = +(parte * TAX_RATE).toFixed(2);
-  const labor = +(total - parte - tax).toFixed(2);
-  document.getElementById('p-parte').textContent = '$' + parte.toFixed(2);
-  document.getElementById('p-labor').textContent = '$' + labor.toFixed(2);
-  document.getElementById('p-tax').textContent = '$' + tax.toFixed(2);
-  document.getElementById('p-total').textContent = '$' + total.toFixed(2);
-}
-
-function guardarFactura() {
-  const nombre = document.getElementById('f-nombre').value.trim();
-  const tel = document.getElementById('f-tel').value.trim();
-  const fecha = document.getElementById('f-fecha').value;
-  const desc = document.getElementById('f-desc').value.trim();
-  const total = parseFloat(document.getElementById('f-total').value) || 0;
-  const parte = parseFloat(document.getElementById('f-parte').value) || 0;
-
-  if (!nombre || !fecha || !desc || total <= 0) {
-    alert('Por favor llena: nombre, fecha, descripción y precio total.');
-    return;
-  }
-  const tax = +(parte * TAX_RATE).toFixed(2);
-  const labor = +(total - parte - tax).toFixed(2);
-
-  const factura = { id: Date.now(), nombre, tel, fecha, desc, total, parte, labor, tax };
-  const arr = getFacturas();
-  arr.unshift(factura);
-  setFacturas(arr);
-
-  // Reset
-  document.getElementById('f-nombre').value = '';
-  document.getElementById('f-tel').value = '';
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-total').value = '';
-  document.getElementById('f-parte').value = '';
-  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
-  document.getElementById('preview').style.display = 'none';
-
-  alert('✅ Factura guardada correctamente!');
-  renderFacturas();
-  renderReporte();
-}
-
-function fmt(n) { return '$' + parseFloat(n || 0).toFixed(2); }
-
-function renderFacturas() {
-  const mes = document.getElementById('filtro-mes').value;
-  const buscar = document.getElementById('filtro-buscar').value.toLowerCase();
-  let arr = getFacturas();
-  if (mes) arr = arr.filter(f => f.fecha && f.fecha.slice(5,7) === mes);
-  if (buscar) arr = arr.filter(f => f.nombre.toLowerCase().includes(buscar) || f.desc.toLowerCase().includes(buscar));
-
-  const cont = document.getElementById('lista-facturas');
-  if (arr.length === 0) {
-    cont.innerHTML = '<div class="empty">No hay facturas registradas<br>en este periodo.</div>';
-    return;
-  }
-  cont.innerHTML = arr.map(f => `
-    <div class="invoice-item">
-      <div class="inv-header">
-        <div>
-          <div class="inv-name">${f.nombre}</div>
-          <div class="inv-date">${f.fecha}${f.tel ? ' · ' + f.tel : ''}</div>
-        </div>
-        <button class="del-btn" onclick="borrar(${f.id})">✕</button>
-      </div>
-      <div class="inv-desc">${f.desc}</div>
-      <div class="inv-amounts">
-        <span class="badge gray">Parte: ${fmt(f.parte)}</span>
-        <span class="badge gray">Labor: ${fmt(f.labor)}</span>
-        <span class="badge orange">Tax: ${fmt(f.tax)}</span>
-        <span class="badge green">Total: ${fmt(f.total)}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function borrar(id) {
-  if (!confirm('¿Borrar esta factura?')) return;
-  setFacturas(getFacturas().filter(f => f.id !== id));
-  renderFacturas();
-  renderReporte();
-}
-
-function populateYears() {
-  const years = [...new Set(getFacturas().map(f => f.fecha ? f.fecha.slice(0,4) : ''))].filter(Boolean);
-  const cur = new Date().getFullYear().toString();
-  if (!years.includes(cur)) years.unshift(cur);
-  years.sort((a,b) => b-a);
-  const sel = document.getElementById('rep-year');
-  sel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-}
-
-function renderReporte() {
-  populateYears();
-  const year = document.getElementById('rep-year').value;
-  const mes = document.getElementById('rep-mes').value;
-  let arr = getFacturas().filter(f => f.fecha && f.fecha.startsWith(year));
-  if (mes) arr = arr.filter(f => f.fecha.slice(5,7) === mes);
-
-  const total = arr.reduce((s,f) => s + f.total, 0);
-  const partes = arr.reduce((s,f) => s + f.parte, 0);
-  const labor = arr.reduce((s,f) => s + f.labor, 0);
-  const tax = arr.reduce((s,f) => s + f.tax, 0);
-
-  document.getElementById('r-total').textContent = fmt(total);
-  document.getElementById('r-count').textContent = arr.length;
-  document.getElementById('r-partes').textContent = fmt(partes);
-  document.getElementById('r-labor').textContent = fmt(labor);
-  document.getElementById('r-tax').textContent = fmt(tax);
-  document.getElementById('rr-bruto').textContent = fmt(total);
-  document.getElementById('rr-cogs').textContent = fmt(partes);
-  document.getElementById('rr-labor').textContent = fmt(labor);
-  document.getElementById('rr-tax').textContent = fmt(tax);
-}
-
-function exportarCSV() {
-  const year = document.getElementById('rep-year').value;
-  const mes = document.getElementById('rep-mes').value;
-  let arr = getFacturas().filter(f => f.fecha && f.fecha.startsWith(year));
-  if (mes) arr = arr.filter(f => f.fecha.slice(5,7) === mes);
-
-  const header = 'Fecha,Cliente,Teléfono,Descripción,Costo Parte,Mano de Obra,Sales Tax,Total\n';
-  const rows = arr.map(f =>
-    `${f.fecha},"${f.nombre}","${f.tel||''}","${f.desc}",${f.parte.toFixed(2)},${f.labor.toFixed(2)},${f.tax.toFixed(2)},${f.total.toFixed(2)}`
-  ).join('\n');
-  const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `facturas_${year}${mes||''}.csv`;
-  a.click();
-}
-
-function compartirWhatsApp() {
-  const year = document.getElementById('rep-year').value;
-  const mes = document.getElementById('rep-mes').value;
-  let arr = getFacturas().filter(f => f.fecha && f.fecha.startsWith(year));
-  if (mes) arr = arr.filter(f => f.fecha.slice(5,7) === mes);
-
-  const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const periodo = mes ? `${meses[parseInt(mes)]} ${year}` : `Año ${year}`;
-
-  const total = arr.reduce((s,f) => s + f.total, 0);
-  const partes = arr.reduce((s,f) => s + f.parte, 0);
-  const labor = arr.reduce((s,f) => s + f.labor, 0);
-  const tax = arr.reduce((s,f) => s + f.tax, 0);
-
-  const msg =
-`📱 *MT Microsoldering – Reporte ${periodo}*
-
-📋 Facturas: ${arr.length}
-💰 Ingresos brutos: ${fmt(total)}
-🔧 Costo de partes: ${fmt(partes)}
-👷 Mano de obra: ${fmt(labor)}
-🏛️ Sales Tax (7.75%): ${fmt(tax)}
-
-_Generado desde Control de Facturas_`;
-
-  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
-}
-
-
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['nueva','facturas','reporte'][i] === name));
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'facturas') renderFacturas();
-  if (name === 'reporte') renderReporte();
-}
-
-// Init
-renderReporte();
+var K="mt-fv4", F=[];
+async function cargar(){try{var r=await window.storage.get(K);if(r&&r.value)F=JSON.parse(r.value);}catch(e){}document.getElementById("ff").value=dh();ut();rl();rr();}
+async function gb(){try{await window.storage.set(K,JSON.stringify(F));}catch(e){}}
+function goTab(n){for(var i=0;i<3;i++){document.getElementById("pg"+i).classList.remove("on");document.getElementById("tb"+i).classList.remove("on");}document.getElementById("pg"+n).classList.add("on");document.getElementById("tb"+n).classList.add("on");if(n==1)rl();if(n==2)rr();}
+function ut(){document.getElementById("tb1").textContent="📋 Facturas ("+F.length+")";}
+function rc(){var to=pf("fto"),pa=pf("fp"),tx=pf("fx")||7.75,ta=pa*tx/100,gn=to-pa-ta;var tb=document.getElementById("txb");if(pa>0){tb.style.display="flex";document.getElementById("txl").textContent="🧾 Tax ("+tx+"% de partes)";document.getElementById("txv").textContent="$"+ta.toFixed(2);}else{tb.style.display="none";}var pb=document.getElementById("pvb");if(to>0){pb.style.display="block";document.getElementById("pvt").textContent=fm(to);document.getElementById("pvp").textContent="-"+fm(pa);document.getElementById("pvxl").textContent="Tax ("+tx+"%)";document.getElementById("pvx").textContent="-"+fm(ta);document.getElementById("pvg").textContent=fm(gn);}else{pb.style.display="none";}}
+async function guardar(){var cl=gv("fc"),ds=gv("fd"),to=pf("fto");if(!cl||!ds||!to){alert("Llena: Cliente, Descripción y Total.");return;}var pa=pf("fp"),tx=pf("fx")||7.75,ta=pa*tx/100;F.unshift({id:Date.now(),cliente:cl,telefono:gv("ft"),fecha:gv("ff"),descripcion:ds,total:to,partes:pa,tax:tx,taxAmount:ta});await gb();["fc","ft","fd","fto","fp"].forEach(function(x){document.getElementById(x).value="";});document.getElementById("fx").value="7.75";document.getElementById("ff").value=dh();document.getElementById("txb").style.display="none";document.getElementById("pvb").style.display="none";ut();var b=document.getElementById("bsv");b.textContent="✅ ¡GUARDADO!";b.classList.add("ok");setTimeout(function(){b.textContent="💾 Guardar Factura";b.classList.remove("ok");},2000);goTab(1);}
+function rl(q){q=q||"";var el=document.getElementById("lista"),fi=F.filter(function(f){return f.cliente.toLowerCase().indexOf(q.toLowerCase())>=0||f.descripcion.toLowerCase().indexOf(q.toLowerCase())>=0;});if(fi.length==0){el.innerHTML='<div class="empty"><div class="eicon">'+(q?"🔍":"📋")+'</div><div>'+(q?"No hay resultados":"No hay facturas todavía")+'</div></div>';return;}el.innerHTML=fi.map(function(f){var gn=f.total-f.partes-(f.taxAmount||0);return'<div class="card" id="cd'+f.id+'"><div class="crow"><div><div class="cname">'+f.cliente+'</div>'+(f.telefono?'<div class="cphone">'+f.telefono+'</div>':'')+'<div class="cdesc">'+f.descripcion+'</div><div class="cdate">'+fd(f.fecha)+'</div></div><div><div class="ctotal">'+fm(f.total)+'</div>'+(f.partes>0?'<div class="csub">partes: '+fm(f.partes)+'</div>':'')+(f.taxAmount>0?'<div class="ctax">tax ('+f.tax+'%): '+fm(f.taxAmount)+'</div>':'')+'<div class="cgain">ganancia: '+fm(gn)+'</div></div></div><div class="cbtns" id="cb'+f.id+'"><button class="bwa" onclick="waf('+f.id+')">💬 WhatsApp</button><button class="bdel" onclick="pb('+f.id+')">🗑 eliminar</button></div></div>';}).join("");}
+function pb(id){document.getElementById("cb"+id).innerHTML='<button class="bdelyes" onclick="br('+id+')">Sí, eliminar</button><button class="bcancel" onclick="rl()">Cancelar</button>';}
+async function br(id){F=F.filter(function(f){return f.id!==id;});await gb();ut();rl();rr();}
+function waf(id){var f=F.find(function(x){return x.id===id;});if(!f)return;var gn=f.total-f.partes-(f.taxAmount||0),msg="🔧 *MT Microsoldering - Recibo*\n─────────────────\n👤 Cliente: "+f.cliente+"\n📅 Fecha: "+fd(f.fecha)+"\n🔧 Trabajo: "+f.descripcion+"\n─────────────────\n💵 Total: "+fm(f.total)+(f.partes>0?"\n🔩 Partes: "+fm(f.partes):"")+(f.taxAmount>0?"\n🧾 Tax ("+f.tax+"%): "+fm(f.taxAmount):"")+"\n✅ Ganancia: "+fm(gn)+"\n─────────────────\n¡Gracias por su preferencia! 🙏\nMT Microsoldering · Anaheim, CA",ph=f.telefono?f.telefono.replace(/\D/g,""):"";window.open(ph?"https://wa.me/"+ph+"?text="+encodeURIComponent(msg):"https://wa.me/?text="+encodeURIComponent(msg),"_blank");}
+function rr(){var ti=F.reduce(function(s,f){return s+f.total;},0),tp=F.reduce(function(s,f){return s+f.partes;},0),tt=F.reduce(function(s,f){return s+(f.taxAmount||0);},0),gn=ti-tp-tt,hs=dh(),hf=F.filter(function(f){return f.fecha===hs;}),hi=hf.reduce(function(s,f){return s+f.total;},0),px=F.length>0?F[F.length-1].tax:7.75;document.getElementById("stats").innerHTML=[{l:"Total facturas",v:F.length,c:"#fff"},{l:"Ingresos totales",v:fm(ti),c:"#00ff88"},{l:"Costo en partes",v:fm(tp),c:"#ff4444"},{l:"Taxes ("+px+"%)",v:fm(tt),c:"#ff8800"},{l:"Ganancia neta",v:fm(gn),c:"#00ff88"},{l:"Facturas hoy",v:hf.length,c:"#fff"},{l:"Ingresos hoy",v:fm(hi),c:"#00ff88"}].map(function(s){return'<div class="stat"><span class="slbl">'+s.l+'</span><span class="sval" style="color:'+s.c+'">'+s.v+'</span></div>';}).join("");document.getElementById("rec").innerHTML=F.length>0?'<div class="rtitle">Últimas 5 transacciones</div>'+F.slice(0,5).map(function(f){return'<div class="rrow"><div><div class="rname">'+f.cliente+'</div><div class="rsub">'+f.descripcion+' · '+fd(f.fecha)+'</div></div><div class="ramt">'+fm(f.total)+'</div></div>';}).join(""):'<div class="empty"><div class="eicon">📊</div><div>Agrega facturas para ver el reporte</div></div>';}
+function cp(){if(F.length==0){alert("No hay facturas.");return;}var ti=F.reduce(function(s,f){return s+f.total;},0),tp=F.reduce(function(s,f){return s+f.partes;},0),tt=F.reduce(function(s,f){return s+(f.taxAmount||0);},0),gn=ti-tp-tt,px=F.length>0?F[F.length-1].tax:7.75,tx="MT Microsoldering - Reporte\nFecha: "+new Date().toLocaleDateString("es-MX")+"\n"+ln(35)+"\nTotal facturas: "+F.length+"\nIngresos totales: "+fm(ti)+"\nCosto en partes: "+fm(tp)+"\nTaxes ("+px+"%): "+fm(tt)+"\nGanancia neta: "+fm(gn)+"\n"+ln(35)+"\nFACTURAS:\n";F.forEach(function(f){tx+="• "+f.fecha+" | "+f.cliente+" | "+f.descripcion+" | "+fm(f.total)+"\n";});tx+=ln(35)+"\nMT Microsoldering · Anaheim, CA";navigator.clipboard.writeText(tx).then(function(){var b=document.getElementById("bcp");b.textContent="✅ Copiado!";setTimeout(function(){b.textContent="📋 Copiar";},2000);}).catch(function(){alert("No se pudo copiar.");});}
+function wr(){if(F.length==0){alert("No hay facturas.");return;}var ti=F.reduce(function(s,f){return s+f.total;},0),tp=F.reduce(function(s,f){return s+f.partes;},0),tt=F.reduce(function(s,f){return s+(f.taxAmount||0);},0),gn=ti-tp-tt,px=F.length>0?F[F.length-1].tax:7.75,msg="📊 *MT Microsoldering - Reporte*\n📅 "+new Date().toLocaleDateString("es-MX")+"\n─────────────────\n🧾 Total facturas: "+F.length+"\n💵 Ingresos totales: "+fm(ti)+"\n🔩 Costo en partes: "+fm(tp)+"\n🏛 Taxes ("+px+"%): "+fm(tt)+"\n✅ Ganancia neta: "+fm(gn)+"\n─────────────────\n*Últimas facturas:*\n";F.slice(0,5).forEach(function(f){msg+="• "+f.cliente+" - "+f.descripcion+": "+fm(f.total)+"\n";});msg+="─────────────────\nMT Microsoldering · Anaheim, CA";window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");}
+function fm(n){return"$"+(n||0).toFixed(2);}
+function dh(){return new Date().toISOString().split("T")[0];}
+function ln(n){var s="";for(var i=0;i<n;i++)s+="─";return s;}
+function fd(d){return new Date(d+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"});}
+function pf(id){return parseFloat(document.getElementById(id).value)||0;}
+function gv(id){return document.getElementById(id).value.trim();}
+cargar();
 </script>
 </body>
 </html>
