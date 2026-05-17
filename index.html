@@ -107,7 +107,17 @@ body { background:#0a0a0a; color:#f0f0f0; font-family:'Exo 2',sans-serif; min-he
 </div>
 <script>
 var K="mt-fv4", F=[];
-async function cargar(){try{var r=await window.storage.get(K);if(r&&r.value)F=JSON.parse(r.value);}catch(e){}document.getElementById("ff").value=dh();ut();rl();rr();}
+async function cargar(){
+  try{var r=await window.storage.get(K);if(r&&r.value)F=JSON.parse(r.value);}catch(e){}
+  // Try to recover from old keys if no data found
+  if(F.length===0){
+    var oldKeys=["mt-facturas-v2","mt-facturas-v3","mt-facturas-data","STORAGE_KEY"];
+    for(var i=0;i<oldKeys.length;i++){
+      try{var r2=await window.storage.get(oldKeys[i]);if(r2&&r2.value){var old=JSON.parse(r2.value);if(old&&old.length>0){F=old;await gb();break;}}}catch(e){}
+    }
+  }
+  document.getElementById("ff").value=dh();ut();rl();rr();
+}
 async function gb(){try{await window.storage.set(K,JSON.stringify(F));}catch(e){}}
 function goTab(n){for(var i=0;i<3;i++){document.getElementById("pg"+i).classList.remove("on");document.getElementById("tb"+i).classList.remove("on");}document.getElementById("pg"+n).classList.add("on");document.getElementById("tb"+n).classList.add("on");if(n==1)rl();if(n==2)rr();}
 function ut(){document.getElementById("tb1").textContent="📋 Facturas ("+F.length+")";}
